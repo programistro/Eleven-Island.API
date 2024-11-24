@@ -19,7 +19,7 @@ if (app.Environment.IsDevelopment())
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseForwardedHeaders();
-app.UseCors(builder => builder.AllowAnyOrigin());
+app.UseCors(options => options.AllowAnyOrigin());
 // app.UseHttpsRedirection();
 
 app.UseAuthorization();
