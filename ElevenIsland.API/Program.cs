@@ -26,4 +26,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run("http://*:7234");
+app.Run();

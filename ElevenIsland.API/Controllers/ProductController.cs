@@ -59,7 +59,7 @@ public class ProductController : ControllerBase
         return Ok(product);
     }
 
-    [HttpGet("{categoryId}")]
+    [HttpGet("get-category-product/{categoryId}")]
     public async Task<IActionResult> GetByCategory(int categoryId)
     {
         var products = await _context.Products.Where(x => x.CategoryId == categoryId).ToListAsync();
