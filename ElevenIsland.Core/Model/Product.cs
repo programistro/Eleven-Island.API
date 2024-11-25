@@ -13,7 +13,6 @@ public class Product
     public decimal OldPrice { get; set; }
     public List<Image> Images { get; set; }
     public List<Attribute> Attributes { get; set; }
-    
     public int CategoryId { get; set; }
 }
 

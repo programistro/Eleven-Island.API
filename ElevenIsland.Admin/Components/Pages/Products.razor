@@ -1,0 +1,88 @@
+﻿@page "/product"
+@using ElevenIsland.Admin.Data
+@using ElevenIsland.Core
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Image = ElevenIsland.Core.Image
+@inject AppDbContext _context
+
+<div class="grid">
+    <QuickGrid Items="@_context.Products">
+        <PropertyColumn Title="ID" Property="@(c => c.Id)" Sortable="true" />
+        <PropertyColumn Title="Цена" Property="@(c => c.Price)" Sortable="true" Align="Align.Right" />
+        <PropertyColumn Title="Старая цена" Property="@(c => c.OldPrice)" Sortable="true" Align="Align.Right" />
+        <PropertyColumn Property="@(c => c.CategoryId)" Sortable="true" Align="Align.Right" />
+        <PropertyColumn Title="Короткое описание" Property="@(c => c.ShortDescription)" Sortable="true" Align="Align.Right" />
+        <PropertyColumn Title="Полное описание" Property="@(c => c.FullDescription)" Sortable="true" Align="Align.Right" />
+        <TemplateColumn Title="Удалить">
+            <button class="btn btn-primary" @onclick="@(() => DeleteProduct(context))">Удалить</button>
+        </TemplateColumn>
+        <TemplateColumn Title="Изменить">
+            <button class="btn btn-primary" @onclick="@(() => ChangeProduct(context))">Изменить</button>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+<Modal @ref="_changeProductModal" title="Изменить" UseStaticBackdrop="true" CloseOnEscape="true">
+    <BodyTemplate>
+        <input type="text" @bind-value="_selectedProduct.Id" class="form-control dark-theme-textbox" autocomplete="off" placeholder="id">
+        
+        <input type="text" @bind-value="_selectedProduct.Price" class="form-control dark-theme-textbox" autocomplete="off" placeholder="Цена" style="margin-top: 5px;">
+        
+        <input type="text" @bind-value="_selectedProduct.OldPrice" class="form-control dark-theme-textbox" autocomplete="off" placeholder="Старая цена" style="margin-top: 5px;">
+        
+        <input type="text" @bind-value="_selectedProduct.CategoryId" class="form-control dark-theme-textbox" autocomplete="off" placeholder="CategoryID" style="margin-top: 5px;">
+        
+        <input type="text" @bind-value="_selectedProduct.ShortDescription" class="form-control dark-theme-textbox" autocomplete="off" placeholder="Краткое описание" style="margin-top: 5px;">
+
+        <textarea @bind-value="_selectedProduct.FullDescription" placeholder="Полное описание(не более 300 символов)" maxlength="300"></textarea>
+
+        <InputFile OnChange="@HandleFileSelected" accept=".jpg,.png" style="margin-top: 5px;"/>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnChange">Изменить</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private Product _selectedProduct;
+    
+    private Modal _changeProductModal = default!;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+
+    private async void HandleFileSelected(InputFileChangeEventArgs obj)
+    {
+        var buffer = new byte[obj.File.Size];
+        using (var ms = new MemoryStream(buffer))
+        {
+            await obj.File.OpenReadStream().CopyToAsync(ms);
+            _selectedProduct.Images.Add(new Image()
+            {
+                Id = Guid.NewGuid(),
+                Src = Convert.ToBase64String(buffer) 
+            });
+        }
+    }
+    
+    private void ChangeProduct(Product product)
+    {
+        _selectedProduct = product;
+        
+    }
+    
+    private void DeleteProduct(Product product)
+    {
+        _context.Products.Remove(product);
+        _context.SaveChanges();
+    }
+
+    private void OnChange()
+    {
+        _context.Products.Update(_selectedProduct);
+        _context.SaveChanges();
+    }
+}

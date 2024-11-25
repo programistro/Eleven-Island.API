@@ -66,4 +66,30 @@ public class ProductController : ControllerBase
         
         return Ok(products);
     }
+
+    [HttpGet("get-category-product/{limit}/{page}")]
+    public async Task<IActionResult> GetByCategory(int limit, int page)
+    {
+        var products = await _context.Products
+            .OrderBy(p => p.Id)
+            .Skip((page - 1) * limit)
+            .Take(limit)
+            .ToListAsync();
+        var result = new
+        {
+            Products = products,
+            PageSize = limit,
+            PageNumber = page
+        };  
+
+        return Ok(result);
+    }
+
+    [HttpGet("get-all-products")]
+    public async Task<IActionResult> GetAllProducts()
+    {
+        var products = await _context.Products.ToListAsync();
+        
+        return Ok(products);
+    }
 }
