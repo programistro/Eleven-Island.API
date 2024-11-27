@@ -3,7 +3,8 @@
 @using ElevenIsland.Core
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.QuickGrid
-@using Image = ElevenIsland.Core.Image
+@using Microsoft.EntityFrameworkCore
+@using Attribute = ElevenIsland.Core.Attribute
 @inject AppDbContext _context
 
 <div class="grid">
@@ -35,7 +36,7 @@
         
         <input type="text" @bind-value="_selectedProduct.ShortDescription" class="form-control dark-theme-textbox" autocomplete="off" placeholder="Краткое описание" style="margin-top: 5px;">
 
-        <textarea @bind-value="_selectedProduct.FullDescription" placeholder="Полное описание(не более 300 символов)" maxlength="300"></textarea>
+        <textarea @bind="_selectedProduct.FullDescription" placeholder="Полное описание(не более 300 символов)" maxlength="300"></textarea>
 
         <InputFile OnChange="@HandleFileSelected" accept=".jpg,.png" style="margin-top: 5px;"/>
     </BodyTemplate>
@@ -44,10 +45,50 @@
     </FooterTemplate>
 </Modal>
 
+<Modal @ref="_createProductModal" Title="Добавить" UseStaticBackdrop="true" CloseOnEscape="true">
+    <BodyTemplate>
+        <input type="text" @bind-value="_newProduct.Id" class="form-control dark-theme-textbox" autocomplete="off" placeholder="id">
+        
+        <input type="text" @bind-value="_newProduct.Price" class="form-control dark-theme-textbox" autocomplete="off" placeholder="Цена" style="margin-top: 5px;">
+        
+        <input type="text" @bind-value="_newProduct.OldPrice" class="form-control dark-theme-textbox" autocomplete="off" placeholder="Старая цена" style="margin-top: 5px;">
+        
+        <input type="text" @bind-value="_newProduct.CategoryId" class="form-control dark-theme-textbox" autocomplete="off" placeholder="CategoryID" style="margin-top: 5px;">
+        
+        <input type="text" @bind-value="_newProduct.ShortDescription" class="form-control dark-theme-textbox" autocomplete="off" placeholder="Краткое описание" style="margin-top: 5px;">
+        
+        @* <textarea @bind="_selectedProduct.FullDescription" placeholder="Полное описание(не более 300 символов)" maxlength="300"></textarea> *@
+
+        <InputFile OnChange="@HandleFileSelected" accept=".jpg,.png" style="margin-top: 5px;"/>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Primary" @onclick="CreateProduct">Добавить</Button>
+    </FooterTemplate>
+</Modal>
+
+<button class="btn btn-primary" @onclick="CreateProductShow">Добавить</button>
+
 @code {
     private Product _selectedProduct;
     
     private Modal _changeProductModal = default!;
+    
+    private Modal _createProductModal = default!;
+
+    private string _image = "";
+
+    private Product _newProduct = new()
+    {
+        idProduct = Guid.NewGuid(),
+        Attributes = new()
+        {
+            
+        },
+        Images = new()
+        {
+            
+        }
+    };
     
     protected override async Task OnInitializedAsync()
     {
@@ -60,18 +101,14 @@
         using (var ms = new MemoryStream(buffer))
         {
             await obj.File.OpenReadStream().CopyToAsync(ms);
-            _selectedProduct.Images.Add(new Image()
-            {
-                Id = Guid.NewGuid(),
-                Src = Convert.ToBase64String(buffer) 
-            });
+            _image = Convert.ToBase64String(buffer);
         }
     }
     
-    private void ChangeProduct(Product product)
+    private async void ChangeProduct(Product product)
     {
         _selectedProduct = product;
-        
+        await _changeProductModal.ShowAsync();
     }
     
     private void DeleteProduct(Product product)
@@ -82,7 +119,53 @@
 
     private void OnChange()
     {
-        _context.Products.Update(_selectedProduct);
+        var findProduct = _context.Products.FirstOrDefault(x => x.idProduct == _selectedProduct.idProduct);
+
+        if (findProduct == null)
+        {
+            return;
+        }
+        
+        if (!string.IsNullOrEmpty(_image))
+        {
+            _selectedProduct.Images.Add(_image);   
+        }
+
+        findProduct.CategoryId = _selectedProduct.CategoryId;
+        findProduct.Price = _selectedProduct.Price;
+        findProduct.OldPrice = _selectedProduct.OldPrice;
+        findProduct.Attributes = _selectedProduct.Attributes;
+        findProduct.FullDescription = _selectedProduct.FullDescription;
+        findProduct.ShortDescription = _selectedProduct.ShortDescription;
+        findProduct.Images = _selectedProduct.Images;
+        findProduct.Attributes = new List<Attribute>()
+        {
+            new Attribute()
+            {
+                Id = Guid.NewGuid(),
+                AttributeValues = new List<AttributeValue>()
+                {
+
+                },
+                ProductAttributeId = 1
+            }
+        };
+        
+        _context.Products.Update(findProduct);
         _context.SaveChanges();
+    }
+
+    private async void CreateProductShow()
+    {
+        await _createProductModal.ShowAsync();
+    }
+
+    private async void CreateProduct()
+    {
+        _newProduct.Images.Add(_image);
+        _context.Products.Add(_newProduct);
+        _context.SaveChanges();
+        _selectedProduct = new Product();
+        await _createProductModal.HideAsync();
     }
 }

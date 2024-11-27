@@ -1,4 +1,5 @@
 using ElevenIsland.Admin.Components;
+using ElevenIsland.Admin.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddBlazorBootstrap();
+builder.Services.AddDbContextFactory<AppDbContext>();
 
 var app = builder.Build();
 

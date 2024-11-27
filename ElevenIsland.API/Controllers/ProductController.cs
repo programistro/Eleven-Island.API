@@ -46,7 +46,6 @@ public class ProductController : ControllerBase
             Id = dto.Id,
             Attributes = dto.Attributes,
             idProduct = Guid.NewGuid(),
-            Images = dto.Images,
             Price = dto.Price,
             FullDescription = dto.FullDescription,
             OldPrice = dto.OldPrice,
@@ -83,6 +82,26 @@ public class ProductController : ControllerBase
         };  
 
         return Ok(result);
+    }
+
+    [HttpPut("update-product")]
+    public async Task<IActionResult> UpdateProduct(ProductDto dto)
+    {
+        var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == dto.Id);
+
+        if (product == null)
+        {
+            return NotFound();
+        }
+        
+        product.Attributes = dto.Attributes;
+        product.Price = dto.Price;
+        product.FullDescription = dto.FullDescription;
+        product.OldPrice = dto.OldPrice;
+        product.ShortDescription = dto.ShortDescription;
+        await _context.SaveChangesAsync();
+        
+        return Ok(product);
     }
 
     [HttpGet("get-all-products")]

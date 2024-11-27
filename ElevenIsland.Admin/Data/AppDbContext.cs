@@ -19,7 +19,7 @@ public class AppDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         //Host=79.174.88.137;Port=15394;Database=users;Username=user1;Password=@Roma2021090
-        // optionsBuilder.UseNpgsql("host=62.113.118.151;port=5432;Username=admin;Password=Abc#1234;Database=postgres");
-        optionsBuilder.UseSqlite("Data Source=ElevenIsland.db");
+        optionsBuilder.UseNpgsql("host=localhost;port=5432;Username=postgres;Password=post;Database=db1");
+        // optionsBuilder.UseSqlite("Data Source=ElevenIsland.db");
     }
 }
